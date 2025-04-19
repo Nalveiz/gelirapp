@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:myapp/providers/expense_provider.dart';
 import 'package:myapp/screens/add_expense.dart';
+import 'package:myapp/screens/piechart.dart';
+import 'package:myapp/screens/piechart_2.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/screens/login_screen.dart';
@@ -64,11 +66,13 @@ class _ExpenseListScreen extends State<ExpenseListScreen> {
           padding: EdgeInsets.zero,
           children: <Widget>[
             UserAccountsDrawerHeader(
+              decoration: BoxDecoration(color: Colors.deepPurple),
               accountEmail: Text(
-                FirebaseAuth.instance.currentUser?.email ?? 'Guest',
+                FirebaseAuth.instance.currentUser?.email?.split('@').first ??
+                    'Guest',
               ),
               currentAccountPicture: CircleAvatar(
-                backgroundColor: Colors.orange,
+                backgroundColor: Colors.black,
                 child: Text(
                   FirebaseAuth.instance.currentUser?.email?.substring(0, 1) ??
                       'G',
@@ -133,6 +137,13 @@ class _ExpenseListScreen extends State<ExpenseListScreen> {
           // Listeyi göster
           return Column(
             children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: IncomeExpensePieChart(
+                  income: totalIncome,
+                  expense: totalExpense,
+                ),
+              ),
               Expanded(
                 child: ListView.builder(
                   itemCount: transactions.length,

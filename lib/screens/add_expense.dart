@@ -1,6 +1,8 @@
+
 import 'package:flutter/material.dart';
 import 'package:myapp/providers/expense_provider.dart';
 import 'package:myapp/models/expense.dart';
+import 'package:myapp/utils/form_validators.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -12,46 +14,48 @@ class AddExpenseScreen extends StatefulWidget {
 }
 
 class AddExpenseScreenState extends State<AddExpenseScreen> {
-  final TextEditingController categoryController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
-  final TextEditingController amountController = TextEditingController();
+  final _categoryController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _amountController = TextEditingController();
 
-  // Gelir/Gider türü seçimi için dropdown
-  String selectedType = 'Gelir';
+  final _categoryFocus = FocusNode();
+  final _descriptionFocus = FocusNode();
+  final _amountFocus = FocusNode();
 
+  String _selectedType = 'Gelir';
   bool _isLoading = false;
 
   @override
   void dispose() {
-    categoryController.dispose();
-    descriptionController.dispose();
-    amountController.dispose();
+    _categoryController.dispose();
+    _descriptionController.dispose();
+    _amountController.dispose();
+
+    _categoryFocus.dispose();
+    _descriptionFocus.dispose();
+    _amountFocus.dispose();
     super.dispose();
   }
 
   Future<void> _submitExpense() async {
-    final type = selectedType; // Dropdown'dan seçilen tür
-    final category = categoryController.text.trim();
-    final description = descriptionController.text.trim();
-    final amount = double.tryParse(amountController.text.trim());
+    final category = _categoryController.text.trim();
+    final description = _descriptionController.text.trim();
+    final rawAmount = _amountController.text;
 
+    final amount = AmountFormatter.parse(rawAmount);
     if (category.isEmpty || description.isEmpty || amount == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Lütfen tüm alanları doldurun.')));
+      _showMessage('Lütfen tüm alanları doğru doldurun.');
       return;
     }
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Kullanıcı oturumu bulunamadı.')));
+      _showMessage('Kullanıcı oturumu bulunamadı.');
       return;
     }
 
     final transaction = TransactionModel(
-      type: type, // Gelir veya Gider
+      type: _selectedType,
       category: category,
       description: description,
       amount: amount,
@@ -59,25 +63,21 @@ class AddExpenseScreenState extends State<AddExpenseScreen> {
       userId: user.uid,
     );
 
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     try {
       await context.read<TransactionProvider>().addTransaction(transaction);
-      if (!mounted) return;
-      Navigator.pop(context);
+      if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Kayıt eklenemedi: $e')));
+      _showMessage('Kayıt eklenemedi: $e');
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -88,49 +88,35 @@ class AddExpenseScreenState extends State<AddExpenseScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Tür seçimi için Dropdown
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Container(
-                width: double.infinity,
-                child: DropdownButton<String>(
-                  value: selectedType,
-                  icon: const Icon(Icons.arrow_drop_down),
-                  iconSize: 24,
-                  elevation: 16,
-                  itemHeight: 50,
-                  menuWidth: 500,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      selectedType = newValue!;
-                    });
-                  },
-                  items:
-                      <String>['Gelir', 'Gider'].map<DropdownMenuItem<String>>((
-                        String value,
-                      ) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                ),
-              ),
+            DropdownButton<String>(
+              value: _selectedType,
+              onChanged: (value) => setState(() => _selectedType = value!),
+              items:
+                  ['Gelir', 'Gider']
+                      .map(
+                        (type) =>
+                            DropdownMenuItem(value: type, child: Text(type)),
+                      )
+                      .toList(),
+              isExpanded: true,
             ),
-            TextField(
-              controller: categoryController,
-              decoration: InputDecoration(labelText: 'Kategori'),
+            const SizedBox(height: 20),
+            _buildTextField(
+              _categoryController,
+              _categoryFocus,
+              _descriptionFocus,
+              'Kategori',
             ),
-            TextField(
-              controller: descriptionController,
-              decoration: InputDecoration(labelText: 'Açıklama'),
+            const SizedBox(height: 20),
+            _buildTextField(
+              _descriptionController,
+              _descriptionFocus,
+              _amountFocus,
+              'Açıklama',
             ),
-            TextField(
-              controller: amountController,
-              decoration: InputDecoration(labelText: 'Tutar'),
-              keyboardType: TextInputType.number,
-            ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
+            _buildAmountField(),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _isLoading ? null : _submitExpense,
               child:
@@ -143,4 +129,33 @@ class AddExpenseScreenState extends State<AddExpenseScreen> {
       ),
     );
   }
+
+  Widget _buildTextField(
+    TextEditingController controller,
+    FocusNode currentFocus,
+    FocusNode nextFocus,
+    String label,
+  ) {
+    return TextField(
+      controller: controller,
+      focusNode: currentFocus,
+      textInputAction: TextInputAction.next,
+      onSubmitted: (_) => FocusScope.of(context).requestFocus(nextFocus),
+      decoration: InputDecoration(labelText: label),
+    );
+  }
+
+  Widget _buildAmountField() {
+    return TextField(
+      controller: _amountController,
+      focusNode: _amountFocus,
+      maxLength: 20,
+      textInputAction: TextInputAction.done,
+      onSubmitted: (_) => FocusScope.of(context).unfocus(),
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(labelText: 'Tutar'),
+      inputFormatters: [MoneyInputFormatter()],
+    );
+  }
 }
+

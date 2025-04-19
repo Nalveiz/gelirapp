@@ -69,7 +69,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.indigo.shade50,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
