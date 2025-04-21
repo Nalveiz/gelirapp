@@ -18,28 +18,31 @@ class IncomeExpensePieChart extends StatelessWidget {
       return const Text("No data to show.");
     }
 
-    return SizedBox(
-      height: 200,
-      child: PieChart(
-        PieChartData(
-          sections: [
-            PieChartSectionData(
-              value: income,
-              color: Colors.green,
-              title: '${((income / total) * 100).toStringAsFixed(1)}%',
-              radius: 60,
-              titleStyle: const TextStyle(color: Colors.white),
-            ),
-            PieChartSectionData(
-              value: expense.abs(),
-              color: Colors.red,
-              title: '${((expense.abs() / total) * 100).toStringAsFixed(1)}%',
-              radius: 60,
-              titleStyle: const TextStyle(color: Colors.white),
-            ),
-          ],
-          sectionsSpace: 0,
-          centerSpaceRadius: 40,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: SizedBox(
+        height: 200,
+        child: PieChart(
+          PieChartData(
+            sections: [
+              PieChartSectionData(
+                value: income,
+                color: Colors.green,
+                title: '${((income / total) * 100).toStringAsFixed(1)}%',
+                radius: 60,
+                titleStyle: const TextStyle(color: Colors.white),
+              ),
+              PieChartSectionData(
+                value: expense.abs(),
+                color: Colors.red,
+                title: '${((expense.abs() / total) * 100).toStringAsFixed(1)}%',
+                radius: 60,
+                titleStyle: const TextStyle(color: Colors.white),
+              ),
+            ],
+            sectionsSpace: 0,
+            centerSpaceRadius: 40,
+          ),
         ),
       ),
     );

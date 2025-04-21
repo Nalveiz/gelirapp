@@ -3,6 +3,7 @@ import 'package:myapp/providers/expense_provider.dart';
 import 'package:myapp/screens/add_expense.dart';
 import 'package:myapp/screens/piechart.dart';
 import 'package:myapp/screens/piechart_2.dart';
+import 'package:myapp/utils/string_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myapp/screens/login_screen.dart';
@@ -41,7 +42,7 @@ class _ExpenseListScreen extends State<ExpenseListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Center(child: Text('Expense Tracker')),
+        title: const Center(child: Text(StringUtils.appName)),
         actions: [
           IconButton(
             icon: Icon(Icons.add),
@@ -66,7 +67,7 @@ class _ExpenseListScreen extends State<ExpenseListScreen> {
           padding: EdgeInsets.zero,
           children: <Widget>[
             UserAccountsDrawerHeader(
-              decoration: BoxDecoration(color: Colors.deepPurple),
+              decoration: BoxDecoration(color: Colors.grey[800]),
               accountEmail: Text(
                 FirebaseAuth.instance.currentUser?.email?.split('@').first ??
                     'Guest',
@@ -98,13 +99,12 @@ class _ExpenseListScreen extends State<ExpenseListScreen> {
                   Icon(Icons.info_outline, color: Colors.grey, size: 50),
                   SizedBox(height: 10),
                   Text(
-                    'No transactions available.',
+                    StringUtils.emptyData,
                     style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
-                      // Kullanıcıyı "Add Expense" sayfasına yönlendir
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -112,36 +112,40 @@ class _ExpenseListScreen extends State<ExpenseListScreen> {
                         ),
                       );
                     },
-                    child: Text('Add Your First Expense'),
+                    child: Text(StringUtils.addData),
                   ),
                 ],
               ),
             );
           }
 
-          // Gelir ve giderleri ayırma
           double totalIncome = 0;
           double totalExpense = 0;
 
           for (var transaction in transactions) {
-            if (transaction.type == 'Gelir') {
+            if (transaction.type == 'Income') {
               totalIncome += transaction.amount; // Gelirler pozitif
-            } else if (transaction.type == 'Gider') {
+            } else if (transaction.type == 'Expense') {
               totalExpense -= transaction.amount; // Giderler negatif
             }
           }
 
-          // Genel toplam (Gelirler - Giderler)
           double total = totalIncome + totalExpense;
 
-          // Listeyi göster
           return Column(
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: IncomeExpensePieChart(
-                  income: totalIncome,
-                  expense: totalExpense,
+                child: Card(
+                  surfaceTintColor: total < 0 ? Colors.red : Colors.green,
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: IncomeExpensePieChart(
+                    income: totalIncome,
+                    expense: totalExpense,
+                  ),
                 ),
               ),
               Expanded(
@@ -167,7 +171,6 @@ class _ExpenseListScreen extends State<ExpenseListScreen> {
                   },
                 ),
               ),
-              // Toplam gelir, gider ve genel toplam
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Card(
@@ -181,7 +184,7 @@ class _ExpenseListScreen extends State<ExpenseListScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Total Income: ${totalIncome.toStringAsFixed(2)} TL',
+                          '${StringUtils.income} ${totalIncome.toStringAsFixed(2)} TL',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -190,7 +193,7 @@ class _ExpenseListScreen extends State<ExpenseListScreen> {
                         ),
                         SizedBox(height: 8.0),
                         Text(
-                          'Total Expense: ${totalExpense.toStringAsFixed(2)} TL',
+                          '${StringUtils.expense} ${totalExpense.toStringAsFixed(2)} TL',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,

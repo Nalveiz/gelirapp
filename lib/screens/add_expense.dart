@@ -1,8 +1,8 @@
-
 import 'package:flutter/material.dart';
 import 'package:myapp/providers/expense_provider.dart';
 import 'package:myapp/models/expense.dart';
 import 'package:myapp/utils/form_validators.dart';
+import 'package:myapp/utils/string_utils.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -22,7 +22,7 @@ class AddExpenseScreenState extends State<AddExpenseScreen> {
   final _descriptionFocus = FocusNode();
   final _amountFocus = FocusNode();
 
-  String _selectedType = 'Gelir';
+  String _selectedType = 'Income';
   bool _isLoading = false;
 
   @override
@@ -83,7 +83,7 @@ class AddExpenseScreenState extends State<AddExpenseScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Yeni Gider Ekle')),
+      appBar: AppBar(title: Text(StringUtils.addData)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -92,7 +92,7 @@ class AddExpenseScreenState extends State<AddExpenseScreen> {
               value: _selectedType,
               onChanged: (value) => setState(() => _selectedType = value!),
               items:
-                  ['Gelir', 'Gider']
+                  ['Income', 'Expense']
                       .map(
                         (type) =>
                             DropdownMenuItem(value: type, child: Text(type)),
@@ -105,14 +105,14 @@ class AddExpenseScreenState extends State<AddExpenseScreen> {
               _categoryController,
               _categoryFocus,
               _descriptionFocus,
-              'Kategori',
+              'Category',
             ),
             const SizedBox(height: 20),
             _buildTextField(
               _descriptionController,
               _descriptionFocus,
               _amountFocus,
-              'Açıklama',
+              'Description',
             ),
             const SizedBox(height: 20),
             _buildAmountField(),
@@ -122,7 +122,7 @@ class AddExpenseScreenState extends State<AddExpenseScreen> {
               child:
                   _isLoading
                       ? CircularProgressIndicator(color: Colors.white)
-                      : Text('Ekle'),
+                      : Text('ADD'),
             ),
           ],
         ),
@@ -153,9 +153,8 @@ class AddExpenseScreenState extends State<AddExpenseScreen> {
       textInputAction: TextInputAction.done,
       onSubmitted: (_) => FocusScope.of(context).unfocus(),
       keyboardType: TextInputType.number,
-      decoration: InputDecoration(labelText: 'Tutar'),
+      decoration: InputDecoration(labelText: 'Amount'),
       inputFormatters: [MoneyInputFormatter()],
     );
   }
 }
-

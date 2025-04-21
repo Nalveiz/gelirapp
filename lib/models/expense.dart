@@ -19,7 +19,6 @@ class TransactionModel {
     required this.date,
   });
 
-  // Firestore'dan map alıp modele çeviriyoruz
   factory TransactionModel.fromMap(Map<String, dynamic> map, String id) {
     return TransactionModel(
       id: id,
@@ -34,7 +33,6 @@ class TransactionModel {
     );
   }
 
-  // Firestore'a kaydetmek için map'e çeviriyoruz
   Map<String, dynamic> toMap() {
     return {
       'userId': userId,
@@ -46,3 +44,4 @@ class TransactionModel {
     };
   }
 }
+

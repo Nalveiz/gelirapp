@@ -1,29 +1,39 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:myapp/utils/form_validators.dart';
 
 class FirebaseAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<User?> signInWithEmailAndPassword(
-      String email, String password) async {
+    String email,
+    String password,
+  ) async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-          email: email, password: password);
+        email: email,
+        password: password,
+      );
+
       return userCredential.user;
+    } on FirebaseAuthException catch (e) {
+      throw AuthErrorHandler.getMessage(e.code);
     } catch (e) {
-      print(e);
-      return null;
+      throw 'Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.';
     }
   }
 
   Future<User?> registerWithEmailAndPassword(
-      String email, String password) async {
+    String email,
+    String password,
+  ) async {
     try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-          email: email, password: password);
+      UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(email: email, password: password);
       return userCredential.user;
+    } on FirebaseAuthException catch (e) {
+      throw AuthErrorHandler.getMessage(e.code);
     } catch (e) {
-      print(e);
-      return null;
+      throw 'Beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.';
     }
   }
 

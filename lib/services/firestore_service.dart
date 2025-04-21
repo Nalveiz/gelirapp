@@ -5,7 +5,6 @@ import 'package:myapp/models/expense.dart';
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  /// Yeni veri ekleme (kullanıcının UID'si otomatik set edilir)
   Future<void> addTransaction(TransactionModel transaction) async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
@@ -23,22 +22,19 @@ class FirestoreService {
     await _db.collection('transactions').add(transactionWithUser.toMap());
   }
 
-  /// Belirli bir ID'ye sahip işlemi siler
   Future<void> deleteTransaction(String id) async {
     await _db.collection('transactions').doc(id).delete();
   }
 
-  /// Mevcut işlemi günceller
   Future<void> updateTransaction(TransactionModel transaction) async {
     if (transaction.id!.isEmpty) return;
     await _db.collection('transactions').doc(transaction.id).update(transaction.toMap());
   }
 
-  /// Sadece giriş yapan kullanıcının işlemlerini döndürür
   Stream<List<TransactionModel>> getTransactions(String userId) {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
-      return const Stream.empty(); // Kullanıcı oturum açmadıysa boş stream döner
+      return const Stream.empty(); 
     }
 
     return _db
